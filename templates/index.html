@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flight Log</title>
+    <style>
+        body {
+            background-image: url('/static/web_image.jpg'); /* Replace with your night background image */
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            background-color: rgba(0, 0, 0, 0.6);
+            color: white;
+            text-align: center;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px auto;
+            width: 80%;
+            animation: fadeIn 1s ease-in-out;
+        }
+
+        h1 {
+            color: #0078D4; /* Microsoft Flight Simulator blue */
+            animation: bounceIn 1s;
+        }
+
+        form {
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        label {
+            display: block;
+            color: white;
+            margin-bottom: 5px;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        textarea {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: none;
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
+            border-radius: 0; /* No border radius */
+            resize: vertical;
+        }
+
+        input[type="submit"] {
+            background-color: #0078D4; /* Microsoft Flight Simulator blue */
+            color: white;
+            padding: 10px 50px; /* Longer buttons */
+            border: none;
+            border-radius: 0; /* No border radius */
+            cursor: pointer;
+        }
+
+        input[type="submit"]:hover {
+            background-color: #0492ff; /* Microsoft Flight Simulator blue */
+            animation: pulse 0.5s;
+        }
+
+        button.send-button {
+            background-color: #0078D4; /* Microsoft Flight Simulator blue */
+            color: white;
+            padding: 10px 50px; /* Longer buttons */
+            border: none;
+            border-radius: 0; /* No border radius */
+            cursor: pointer;
+            display: flex;
+            justify-content: flex-start; /* Align text to the left */
+            align-items: flex-start; /* Align text to the top */
+            margin-top: 5px;
+            font-size: 10px;
+            font-weight: bolder;
+        }
+
+        button.send-button:hover {
+            background-color: #0492ff; /* Microsoft Flight Simulator blue */
+            animation: rotateIn 0.5s;
+        }
+
+        button {
+            background-color: #0078D4; /* Microsoft Flight Simulator blue */
+            color: white;
+            padding: 10px 50px; /* Longer buttons */
+            border: none;
+            border-radius: 0; /* No border radius */
+            cursor: pointer;
+            margin-top: 5px;
+            font-size: 10px;
+            font-weight: bolder;
+        }
+
+        button:hover {
+            background-color: #0492ff; /* Microsoft Flight Simulator blue */
+            animation: rotateIn 0.5s;
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        li {
+            margin-bottom: 10px;
+            animation: slideIn 0.5s, fadeIn 0.5s;
+        }
+
+        /* Add this to your existing styles */
+        .flight {
+            margin-bottom: 20px;
+            padding: 10px;
+            background-color: rgba(0, 0, 0, 0.8);
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .flight-details {
+            color: white;
+            text-align: left;
+            padding-left: 20px;
+            margin-left: 10px;
+            border-left: 2px solid #0078D4; /* Microsoft Flight Simulator blue */
+        }
+
+        .flight-separator {
+            margin-top: 10px;
+            margin-bottom: 10px;
+            border: none;
+            border-top: 1px solid #DAA520; /* Gold color */
+        }
+
+        #result {
+            background-color: #0078D4; /* Microsoft Flight Simulator blue */
+            color: white;
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 5px;
+            font-size: 18px;
+            text-align: center;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Flight Log</h1>
+        <form action="/add_flight" method="POST">
+            <label for="aircraft">Aircraft:</label>
+            <input type="text" name="aircraft" id="aircraft" required>
+            <label for="date">Date:</label>
+            <input type="text" name="date" required><br>
+            <label for="departure">Departure:</label>
+            <input type="text" name="departure" required><br>
+            <label for="arrival">Arrival:</label>
+            <input type="text" name="arrival" required><br>
+            <label for="time">Time of Flight:</label>
+            <input type="number" name="time" step="any" required><br>
+            <label for="comments">Comments:</label>
+            <textarea name="comments" rows="4" cols="50"></textarea><br>
+            <input type="submit" value="Add Flight">
+        </form>
+        <h1>Calculator</h1>
+        <label for="hours">Hours:</label>
+        <input type="number" style="width: 96%;" id="hours" name="hours" min="0">
+        <label for="minutes">Minutes:</label>
+        <input style="width: 96%;" type="number" id="minutes" name="minutes" min="0" max="59">
+        <button id="calculate">Calculate</button>
+        <div id="result"></div>
+        <h1>{{ stat }}</h1>
+        <h1>Number of Flight Hours: {{ total_flight_hours }}</h1>
+        {% if longest_flight_stat != 'No Flights! Add Some' %}
+            <h1>Your longest Flight was {{ longest_flight_stat[0][5] }} Hours and it departed from {{ longest_flight_stat[0][3] }} and Arrived in {{ longest_flight_stat[0][4] }} in a {{ longest_flight_stat[0][1] }}</h1>
+        {% endif %}
+        {% if longest_flight_stat == 'No Flights! Add Some' %}
+            <h1>{{ longest_flight_stat }}</h1>
+        {% endif %}
+        <h2>Logged Flights</h2>
+        <ul>
+            {% for flight in flights %}
+                <li class="flight">
+                    <div class="flight-details">
+                        <strong>Aircraft:</strong> {{ flight[1] }}<br>
+                        <strong>Date:</strong> {{ flight[2] }}<br>
+                        <strong>Departure:</strong> {{ flight[3] }}<br>
+                        <strong>Arrival:</strong> {{ flight[4] }}<br>
+                        <strong>Time of Flight:</strong> {{ flight[5] }}<br>
+                        <strong>Comments:</strong> {{ flight[6] }}
+                    </div>
+                    <button class="send-button" data-flight-id="{{ flight[0] }}">Delete</button>
+                    <hr class="flight-separator">
+                </li>
+            {% endfor %}
+        </ul>        
+    </div>
+
+    <!-- Include jQuery library -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<!-- JavaScript to handle button click and send data -->
+<script>
+    $(document).ready(function() {
+    $(".send-button").click(function() {
+        var flightId = $(this).data("flight-id");
+
+        console.log("Flight ID:", flightId);
+
+            $.ajax({
+                type: "POST",
+                url: "/delete_flight",
+                data: {
+                    flight_id: flightId
+                },
+                success: function() {
+                    location.reload();
+                }
+            });
+        });
+    });
+
+    // Function to calculate decimal time
+    function calculateDecimalTime(hours, minutes) {
+        return hours + (minutes / 60);
+    }
+
+    $(document).ready(function() {
+        $("#calculate").click(function() {
+            var hours = parseFloat($("#hours").val()) || 0;
+            var minutes = parseFloat($("#minutes").val()) || 0;
+
+            var decimalTime = calculateDecimalTime(hours, minutes);
+
+            $("#result").text("Decimal Time: " + decimalTime.toFixed(2));
+        });
+    });
+</script>
+</body>
+</html>
